@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TripLog</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    input, textarea, select, button { display: block; width: 100%; margin: 10px 0; padding: 8px; }
+    .trip { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>TripLog</h1>
+
+  <h2>Submit a Trip</h2>
+  <form id="tripForm">
+    <input type="text" id="tripName" placeholder="Trip Name" required />
+    <input type="text" id="location" placeholder="Location" required />
+    <input type="date" id="date" required />
+    <textarea id="notes" placeholder="Trip Notes" required></textarea>
+    <button type="submit">Submit Trip</button>
+  </form>
+
+  <h2>Filter Trips by Sentiment</h2>
+  <select id="sentimentFilter">
+    <option value="">-- Select Sentiment --</option>
+    <option value="positive">Positive</option>
+    <option value="negative">Negative</option>
+    <option value="mixed">Mixed</option>
+    <option value="neutral">Neutral</option>
+  </select>
+  <button onclick="fetchTrips()">Fetch Trips</button>
+
+  <div id="results"></div>
+
+  <script>
+    const apiBase = "https://yjzx1mhwo8.execute-api.eu-west-2.amazonaws.com/prod";
+
+    document.getElementById("tripForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const trip = {
+        tripName: document.getElementById("tripName").value,
+        location: document.getElementById("location").value,
+        date: document.getElementById("date").value,
+        notes: document.getElementById("notes").value
+      };
+
+      try {
+        const res = await fetch(`${apiBase}/trips`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(trip)
+        });
+
+        const data = await res.json();
+        alert(`Trip saved!\nID: ${data.tripId}\nSentiment: ${data.sentiment}`);
+        document.getElementById("tripForm").reset();
+      } catch (err) {
+        console.error("Error submitting trip:", err);
+        alert("Error submitting trip");
+      }
+    });
+
+    async function fetchTrips() {
+      const sentiment = document.getElementById("sentimentFilter").value;
+      try {
+        const res = await fetch(`${apiBase}/trips?sentiment=${sentiment}`);
+        const trips = await res.json();
+
+        const container = document.getElementById("results");
+        container.innerHTML = "";
+        trips.forEach(trip => {
+          const div = document.createElement("div");
+          div.className = "trip";
+          div.innerHTML = `
+            <strong>${trip.tripName}</strong><br>
+            <em>${trip.location} — ${trip.date}</em><br>
+            <p>${trip.notes}</p>
+            <small>Sentiment: ${trip.sentiment}</small><br>
+            <small>Entities: ${trip.entities?.join(", ") || "None"}</small>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error("Error fetching trips:", err);
+        alert("Error loading trips");
+      }
+    }
+  </script>
+</body>
+</html>

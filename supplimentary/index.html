@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TripLogWriter Debug</title>
+</head>
+<body>
+  <h1>TripLogWriter Debug</h1>
+  <button onclick="submitTrip()">Submit Trip</button>
+
+  <script>
+    function submitTrip() {
+      console.log("Submitting trip...");
+
+      fetch("https://yjzx1mhwo8.execute-api.eu-west-2.amazonaws.com/prod/trips", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    location: "Rome",
+    notes: "Great food and vibes!"
+  })
+})
+      .then(res => res.text())
+      .then(data => {
+        console.log("Response:", data);
+        alert("Trip submitted!");
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        alert("Error submitting trip");
+      });
+    }
+  </script>
+</body>
+</html>
